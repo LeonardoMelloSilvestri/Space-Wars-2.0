@@ -10,10 +10,12 @@ $(document).ready(function(){
 	explosion = new GlobalExplosions();
 	bullet = new GlobalBullets();
 	enemy = new GlobalEnemies();
+	item = new GlobalItens();
 
 	bullets = [];
 	enemies = [];
 	explosions = [];
+	itens = [];
 
 	var themeSound = $("#themeSound");
 
@@ -33,7 +35,9 @@ $(document).ready(function(){
 		this.imgDiagEnemy = new Image();
 		this.imgDiagEnemy.src = "./img/diagEnemy.png";
 		this.imgExplosion = new Image();
-		this.imgExplosion.src = "./img/explosion.png"		
+		this.imgExplosion.src = "./img/explosion.png";
+		this.imgHealingItem = new Image();
+		this.imgHealingItem.src = "./img/healingItem.png";			
 	}
 
 	function init() {
@@ -44,6 +48,7 @@ $(document).ready(function(){
 		if(intro.isOn == false && pause.isPaused == false) {
 			player.move();
 			player.shootBullet();
+			player.colideItens();
 			gameOver.gameOver();
 			bullet.colideEnemy();			
 		}
@@ -64,6 +69,7 @@ $(document).ready(function(){
 			bullet.drawBullets();
 			enemy.drawEnemies();
 			explosion.drawExplosions();
+			item.drawItens();
 			if(explosion.isOn == true) {
 				explosion.draw();
 			}		
@@ -245,6 +251,22 @@ $(document).ready(function(){
 			}
 			this.shoot = false;
 		}
+
+		this.colideItens = function() {
+			for(var i = 0; i < itens.length; i++) {
+				var currentItem = itens[i];
+
+				if(player.x + player.width >= currentItem.x &&
+				   player.x <= currentItem.x + currentItem.width &&
+				   player.y + player.height >= currentItem.y &&
+				   player.y <= currentItem.y + currentItem.height) {
+					if(currentItem.type == "Heal") {
+						player.hp += currentItem.heal;
+						itens.splice(itens.indexOf(currentItem), 1);
+					}
+				}
+			}
+		}
 	}
 
 	function SimpleBullet() {
@@ -295,11 +317,12 @@ $(document).ready(function(){
 					   currentBullet.y <= currentEnemy.y + currentEnemy.height) {
 						currentEnemy.hp -= currentBullet.damage;
 						bullets.splice(bullets.indexOf(currentBullet), 1);
-						if(currentEnemy.hp <= 0) {						
+						if(currentEnemy.hp <= 0) {					
 							enemies.splice(enemies.indexOf(currentEnemy), 1);							
 							player.score += currentEnemy.score;	
 							explosions.push(new Explosion(currentEnemy.x, currentEnemy.y));
-							explosion.removeExplosions();																		
+							explosion.removeExplosions();
+							item.spawnItens();																	
 						}
 					}
 				}
@@ -430,6 +453,36 @@ $(document).ready(function(){
 					}
 				}
 			}, 700)
+		}
+	}
+
+	function HealingItem() {
+		this.height = 50;
+		this.width = 50;
+		this.x = Math.floor((Math.random() * 800) + 30);
+		this.y = Math.floor((Math.random() * 550));
+		this.heal = 10;
+		this.type = "Heal";
+		this.img = images.imgHealingItem;
+
+		this.draw = function() {
+			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+		}
+	}
+
+	function GlobalItens() {
+		this.drawItens = function() {
+			for(var i = 0; i < itens.length; i++) {
+				var currentItem = itens[i];
+				currentItem.draw();
+			}
+		}
+
+		this.spawnItens = function() {
+			var random = Math.floor((Math.random() * 10));
+			if(random >= 0 && random <= 1) {
+				itens.push(new HealingItem());
+			}
 		}
 	}
 
