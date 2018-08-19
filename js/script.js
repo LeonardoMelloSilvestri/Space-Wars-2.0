@@ -12,12 +12,15 @@ $(document).ready(function(){
 	enemy = new GlobalEnemies();
 	item = new GlobalItens();
 	sharpBullet = new SharpBullet();
+	cometBullet = new CometBullet();
+	flameBullet = new FlameBullet();
 
 	bullets = [];
 	enemies = [];
 	explosions = [];
 	ammoItens = [];
 	supportItens = [];
+	enemiesCounter = 0;
 
 	var themeSound = $("#themeSound");
 
@@ -43,7 +46,15 @@ $(document).ready(function(){
 		this.imgSharpItem = new Image();
 		this.imgSharpItem.src = "./img/sharpItem.png";
 		this.imgSharpBullet = new Image();
-		this.imgSharpBullet.src = "./img/sharpBullet.png";			
+		this.imgSharpBullet.src = "./img/sharpBullet.png";
+		this.imgCometBullet = new Image();
+		this.imgCometBullet.src = "./img/cometBullet.png";
+		this.imgCometItem = new Image();
+		this.imgCometItem.src = "./img/cometItem.png";
+		this.imgFlameBullet = new Image();
+		this.imgFlameBullet.src = "./img/flameBullet.png";
+		this.imgFlameItem = new Image();
+		this.imgFlameItem.src = "./img/flameItem.png";			
 	}
 
 	function init() {
@@ -72,11 +83,17 @@ $(document).ready(function(){
 			ctx.fillText("Durabilidade: " + player.hp, 200, 30);
 			ctx.fillText("Pontos: " + player.score, 130, 595);
 			switch(player.bulletType) {
-				case "Simple":
-					ctx.fillText("Munição: Infinitas", 600, 30);
-					break;
 				case "Sharp":
-					ctx.fillText("Munição: " + sharpBullet.ammo, 500, 30);
+					ctx.fillText("Munição afiada: " + sharpBullet.ammo, 600, 30);
+					break;
+				case "Comet":
+					ctx.fillText("Munição cometa: " + cometBullet.ammo, 600, 30);
+					break;
+				case "Flame":
+					ctx.fillText("Munição de chamas: " + flameBullet.ammo, 600, 30);
+					break;
+				default:
+					ctx.fillText("Munição comum: ∞", 600, 30);				
 			}			
 			ctx.shadowBlur = 0;
 			player.draw();
@@ -270,9 +287,24 @@ $(document).ready(function(){
 					sharpBullet.ammo--;
 					if(sharpBullet.ammo <= 0) {
 						player.bulletType = "Simple";
-						sharpBullet.ammo = 20;
+						sharpBullet.ammo = 20;	
 					}
-
+				} else if(this.bulletType == "Comet") {
+					bullets.push(new CometBullet());
+					bullets[0].sound.get(0).play();
+					cometBullet.ammo--;
+					if(cometBullet.ammo <= 0) {
+						player.bulletType = "Simple";
+						cometBullet.ammo = 10;	
+					}
+				} else if(this.bulletType == "Flame") {
+					bullets.push(new FlameBullet());
+					bullets[0].sound.get(0).play();
+					flameBullet.ammo--;
+					if(flameBullet.ammo <= 0) {
+						player.bulletType = "Simple";
+						flameBullet.ammo = 5;	
+					}
 				}			
 			}
 			this.shoot = false;
@@ -351,7 +383,49 @@ $(document).ready(function(){
 		this.move = function() {
 			this.x += this.speed;
 		}
-	}	
+	}
+
+	function CometBullet() {
+		this.height = 60;
+		this.width = 120;
+		this.x = player.x + player.width - 50;
+		this.y = player.y + player.height / 2 - this.height / 2;
+		this.speed = 18;			
+		this.img = images.imgCometBullet;
+		this.sound = $("#sharpBulletSound");
+		this.damage = 5;
+		this.pass = true;
+		this.ammo = 10;
+
+		this.draw = function() {			
+			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+		}
+
+		this.move = function() {
+			this.x += this.speed;
+		}
+	}
+
+	function FlameBullet() {
+		this.height = 250;
+		this.width = 200;
+		this.x = player.x + player.width - 50;
+		this.y = player.y + player.height / 2 - this.height / 2;
+		this.speed = 8;			
+		this.img = images.imgFlameBullet;
+		this.sound = $("#sharpBulletSound");
+		this.damage = 10;
+		this.pass = true;
+		this.ammo = 5;
+
+		this.draw = function() {			
+			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+		}
+
+		this.move = function() {
+			this.x += this.speed;
+		}
+	}			
 
 	function GlobalBullets() {
 		this.drawBullets = function() {
@@ -380,7 +454,9 @@ $(document).ready(function(){
 					   currentBullet.y + currentBullet.height >= currentEnemy.y &&
 					   currentBullet.y <= currentEnemy.y + currentEnemy.height) {
 						currentEnemy.hp -= currentBullet.damage;
-						bullets.splice(bullets.indexOf(currentBullet), 1);
+						if(currentBullet.pass == false) {
+							bullets.splice(bullets.indexOf(currentBullet), 1);
+						}
 						if(currentEnemy.hp <= 0) {					
 							enemies.splice(enemies.indexOf(currentEnemy), 1);							
 							player.score += currentEnemy.score;	
@@ -548,7 +624,37 @@ $(document).ready(function(){
 		this.draw = function() {
 			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
 		}
-	} 
+	}
+
+	function CometItem() {
+		this.height = 60;
+		this.width = 80;
+		this.x = Math.floor((Math.random() * 800) + 30);
+		this.y = Math.floor((Math.random() * 550));
+		this.ammoType = "Comet";
+		this.ammo = 10;
+		this.type = "Ammo";
+		this.img = images.imgCometItem;
+
+		this.draw = function() {
+			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+		}
+	}
+
+	function FlameItem() {
+		this.height = 60;
+		this.width = 60;
+		this.x = Math.floor((Math.random() * 800) + 30);
+		this.y = Math.floor((Math.random() * 550));
+		this.ammoType = "Flame";
+		this.ammo = 5;
+		this.type = "Ammo";
+		this.img = images.imgFlameItem;
+
+		this.draw = function() {
+			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+		}
+	}		 
 
 	function GlobalItens() {
 		this.drawItens = function() {
@@ -564,11 +670,15 @@ $(document).ready(function(){
 		}
 
 		this.spawnItens = function() {
-			var random = Math.floor((Math.random() * 15));
-			if(random >= 0 && random <= 1) {
+			var random = Math.floor((Math.random() * 50));
+			if(random >= 0 && random <= 10) {
 				supportItens.push(new HealingItem());
-			} else if(random >= 2 && player.bulletType == "Simple") {
+			} else if(random >= 11 && random <= 14 && player.bulletType == "Simple") {
 				ammoItens.push(new SharpItem());
+			} else if(random >= 15 && random <= 17 & player.bulletType == "Simple") {
+				ammoItens.push(new CometItem());
+			} else if(random == 18 && player.bulletType == "Simple") {
+				ammoItens.push(new FlameItem());
 			}
 		}
 	}
