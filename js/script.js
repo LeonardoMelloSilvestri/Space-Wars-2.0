@@ -11,11 +11,13 @@ $(document).ready(function(){
 	bullet = new GlobalBullets();
 	enemy = new GlobalEnemies();
 	item = new GlobalItens();
+	sharpBullet = new SharpBullet();
 
 	bullets = [];
 	enemies = [];
 	explosions = [];
-	itens = [];
+	ammoItens = [];
+	supportItens = [];
 
 	var themeSound = $("#themeSound");
 
@@ -52,7 +54,8 @@ $(document).ready(function(){
 		if(intro.isOn == false && pause.isPaused == false) {
 			player.move();
 			player.shootBullet();
-			player.colideItens();
+			player.colideAmmoItens();
+			player.colideSupportItens();
 			gameOver.gameOver();
 			bullet.colideEnemy();			
 		}
@@ -68,6 +71,13 @@ $(document).ready(function(){
 			ctx.shadowBlur = 5;	
 			ctx.fillText("Durabilidade: " + player.hp, 200, 30);
 			ctx.fillText("Pontos: " + player.score, 130, 595);
+			switch(player.bulletType) {
+				case "Simple":
+					ctx.fillText("Munição: Infinitas", 600, 30);
+					break;
+				case "Sharp":
+					ctx.fillText("Munição: " + sharpBullet.ammo, 500, 30);
+			}			
 			ctx.shadowBlur = 0;
 			player.draw();
 			bullet.drawBullets();
@@ -256,31 +266,50 @@ $(document).ready(function(){
 					bullets[0].sound.get(0).play();			
 				} else if(this.bulletType == "Sharp") {
 					bullets.push(new SharpBullet());		
-					bullets[0].sound.get(0).play();						
-				}
+					bullets[0].sound.get(0).play();
+					sharpBullet.ammo--;
+					if(sharpBullet.ammo <= 0) {
+						player.bulletType = "Simple";
+						sharpBullet.ammo = 20;
+					}
+
+				}			
 			}
 			this.shoot = false;
 		}
 
-		this.colideItens = function() {
-			for(var i = 0; i < itens.length; i++) {
-				var currentItem = itens[i];
+		this.colideAmmoItens = function() {
+			for(var i = 0; i < ammoItens.length; i++) {
+				var currentAmmoItem = ammoItens[i];
 
-				if(player.x + player.width >= currentItem.x &&
-				   player.x <= currentItem.x + currentItem.width &&
-				   player.y + player.height >= currentItem.y &&
-				   player.y <= currentItem.y + currentItem.height) {
-					if(currentItem.type == "Heal") {
-						player.hp += currentItem.heal;
-						itens.splice(itens.indexOf(currentItem), 1);
-					} else if(currentItem.type == "Ammo") {
-						player.bulletType = currentItem.ammoType;
-						itens.splice(itens.indexOf(currentItem), 1);
-					}
+				if(player.x + player.width >= currentAmmoItem.x &&
+					player.x <= currentAmmoItem.x + currentAmmoItem.width &&
+					player.y + player.height >= currentAmmoItem.y &&
+					player.y <= currentAmmoItem.y + currentAmmoItem.height) {					
+						player.bulletType = currentAmmoItem.ammoType;
+						ammoItens = [];						
 				}
 			}
 		}
+
+		this.colideSupportItens = function() {
+			for(var i = 0; i < supportItens.length; i++) {
+				var currentSupportItem = supportItens[i];
+
+				if(player.x + player.width >= currentSupportItem.x &&
+					player.x <= currentSupportItem.x + currentSupportItem.width &&
+					player.y + player.height >= currentSupportItem.y &&
+					player.y <= currentSupportItem.y + currentSupportItem.height) {					
+						if(currentSupportItem.power == "Heal") {
+							player.hp += currentSupportItem.heal;
+							supportItens.splice(supportItens.indexOf(currentSupportItem), 1);
+						}						
+				}
+			}
+		}		
 	}
+
+	
 
 	function SimpleBullet() {
 		this.height = 30;
@@ -290,6 +319,7 @@ $(document).ready(function(){
 		this.speed = 15;			
 		this.img = images.imgSimpleBullet;
 		this.sound = $("#simpleBulletSound");
+		this.ammo = "Infinito";
 		this.damage = 1;
 		this.pass = false;
 
@@ -312,6 +342,7 @@ $(document).ready(function(){
 		this.sound = $("#sharpBulletSound");
 		this.damage = 1;
 		this.pass = false;
+		this.ammo = 20;
 
 		this.draw = function() {			
 			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
@@ -495,7 +526,8 @@ $(document).ready(function(){
 		this.x = Math.floor((Math.random() * 800) + 30);
 		this.y = Math.floor((Math.random() * 550));
 		this.heal = 10;
-		this.type = "Heal";
+		this.type = "Support";
+		this.power = "Heal";
 		this.img = images.imgHealingItem;
 
 		this.draw = function() {
@@ -509,6 +541,7 @@ $(document).ready(function(){
 		this.x = Math.floor((Math.random() * 800) + 30);
 		this.y = Math.floor((Math.random() * 550));
 		this.ammoType = "Sharp";
+		this.ammo = 20;
 		this.type = "Ammo";
 		this.img = images.imgSharpItem;
 
@@ -519,18 +552,23 @@ $(document).ready(function(){
 
 	function GlobalItens() {
 		this.drawItens = function() {
-			for(var i = 0; i < itens.length; i++) {
-				var currentItem = itens[i];
-				currentItem.draw();
+			for(var i = 0; i < ammoItens.length; i++) {
+				var currentAmmoItem = ammoItens[i];
+				currentAmmoItem.draw();
+			}
+
+			for(var j = 0; j < supportItens.length; j++) {
+				var currentSupportItem = supportItens[j];
+				currentSupportItem.draw();
 			}
 		}
 
 		this.spawnItens = function() {
 			var random = Math.floor((Math.random() * 15));
 			if(random >= 0 && random <= 1) {
-				itens.push(new HealingItem());
-			} else if(random == 2) {
-				itens.push(new SharpItem());
+				supportItens.push(new HealingItem());
+			} else if(random >= 2 && player.bulletType == "Simple") {
+				ammoItens.push(new SharpItem());
 			}
 		}
 	}
