@@ -272,7 +272,9 @@ $(document).ready(function(){
 			for(var i = 0; i < bullets.length; i++) {
 				var currentBullet = bullets[i];
 				currentBullet.draw();
-				currentBullet.move();
+				if(pause.isPaused == false) {
+					currentBullet.move();
+				}
 
 				if(currentBullet.x >= canvas.width()) {
 					bullets.splice(bullets.indexOf(currentBullet), 1);
