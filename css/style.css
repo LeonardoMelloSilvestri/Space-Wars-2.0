@@ -1,0 +1,10 @@
+#canvas {
+	position: absolute;
+	background-size: cover;
+	margin: auto;
+	top: 0%;
+	right: 0%;
+	left: 0%;
+	bottom: 0%;
+	background-image: url("../img/background.jpg");
+}
