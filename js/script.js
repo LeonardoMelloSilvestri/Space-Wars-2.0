@@ -37,7 +37,11 @@ $(document).ready(function(){
 		this.imgExplosion = new Image();
 		this.imgExplosion.src = "./img/explosion.png";
 		this.imgHealingItem = new Image();
-		this.imgHealingItem.src = "./img/healingItem.png";			
+		this.imgHealingItem.src = "./img/healingItem.png";
+		this.imgSharpItem = new Image();
+		this.imgSharpItem.src = "./img/sharpItem.png";
+		this.imgSharpBullet = new Image();
+		this.imgSharpBullet.src = "./img/sharpBullet.png";			
 	}
 
 	function init() {
@@ -227,6 +231,7 @@ $(document).ready(function(){
 		this.isShooting = false;
 		this.hp = 100;
 		this.score = 0;
+		this.bulletType = "Simple";
 
 		this.draw = function() {		
 			ctx.drawImage(this.img, this.x, this.y, this.height, this.width);			
@@ -245,9 +250,14 @@ $(document).ready(function(){
 		}
 
 		this.shootBullet = function() {
-			if(this.shoot == true) {				
-				bullets.push(new SimpleBullet());		
-				bullets[0].sound.get(0).play();			
+			if(this.shoot == true) {
+				if(this.bulletType == "Simple") {
+					bullets.push(new SimpleBullet());		
+					bullets[0].sound.get(0).play();			
+				} else if(this.bulletType == "Sharp") {
+					bullets.push(new SharpBullet());		
+					bullets[0].sound.get(0).play();						
+				}
 			}
 			this.shoot = false;
 		}
@@ -262,6 +272,9 @@ $(document).ready(function(){
 				   player.y <= currentItem.y + currentItem.height) {
 					if(currentItem.type == "Heal") {
 						player.hp += currentItem.heal;
+						itens.splice(itens.indexOf(currentItem), 1);
+					} else if(currentItem.type == "Ammo") {
+						player.bulletType = currentItem.ammoType;
 						itens.splice(itens.indexOf(currentItem), 1);
 					}
 				}
@@ -288,6 +301,26 @@ $(document).ready(function(){
 			this.x += this.speed;
 		}
 	}
+
+	function SharpBullet() {
+		this.height = 120;
+		this.width = 100;
+		this.x = player.x + player.width - 50;
+		this.y = player.y + player.height / 2 - this.height / 2;
+		this.speed = 15;			
+		this.img = images.imgSharpBullet;
+		this.sound = $("#sharpBulletSound");
+		this.damage = 1;
+		this.pass = false;
+
+		this.draw = function() {			
+			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+		}
+
+		this.move = function() {
+			this.x += this.speed;
+		}
+	}	
 
 	function GlobalBullets() {
 		this.drawBullets = function() {
@@ -470,6 +503,20 @@ $(document).ready(function(){
 		}
 	}
 
+	function SharpItem() {
+		this.height = 60;
+		this.width = 60;
+		this.x = Math.floor((Math.random() * 800) + 30);
+		this.y = Math.floor((Math.random() * 550));
+		this.ammoType = "Sharp";
+		this.type = "Ammo";
+		this.img = images.imgSharpItem;
+
+		this.draw = function() {
+			ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+		}
+	} 
+
 	function GlobalItens() {
 		this.drawItens = function() {
 			for(var i = 0; i < itens.length; i++) {
@@ -479,9 +526,11 @@ $(document).ready(function(){
 		}
 
 		this.spawnItens = function() {
-			var random = Math.floor((Math.random() * 10));
+			var random = Math.floor((Math.random() * 15));
 			if(random >= 0 && random <= 1) {
 				itens.push(new HealingItem());
+			} else if(random == 2) {
+				itens.push(new SharpItem());
 			}
 		}
 	}
