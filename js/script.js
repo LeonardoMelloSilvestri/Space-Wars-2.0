@@ -20,7 +20,12 @@ $(document).ready(function(){
 	explosions = [];
 	ammoItens = [];
 	supportItens = [];
+
 	enemiesCounter = 0;
+	spawnSpeed = 700;
+	enemyDamageMod = 0;
+	enemySpeedMod = 0;
+	healingItemMod = 0;
 
 	var themeSound = $("#themeSound");
 	var explosionSound = $("#explosionSound");
@@ -71,7 +76,8 @@ $(document).ready(function(){
 			player.colideAmmoItens();
 			player.colideSupportItens();
 			gameOver.gameOver();
-			bullet.colideEnemy();			
+			bullet.colideEnemy();
+			enemy.enemyMod();
 		}
 	}
 
@@ -83,20 +89,21 @@ $(document).ready(function(){
 			ctx.font = "35px Cursive";
 			ctx.shadowColor = "Red";
 			ctx.shadowBlur = 5;	
-			ctx.fillText("Durabilidade: " + player.hp, 200, 30);
-			ctx.fillText("Pontos: " + player.score, 130, 595);
+			ctx.fillText("Durabilidade: " + player.hp, 200, 40);
+			ctx.fillText("Pontos: " + player.score, 130, 585);			
+			ctx.fillText("Inimigos abatidos: " + enemiesCounter, 600, 585);
 			switch(player.bulletType) {
 				case "Sharp":
-					ctx.fillText("Munição afiada: " + sharpBullet.ammo, 600, 30);
+					ctx.fillText("Munição afiada: " + sharpBullet.ammo, 600, 40);
 					break;
 				case "Comet":
-					ctx.fillText("Munição cometa: " + cometBullet.ammo, 600, 30);
+					ctx.fillText("Munição cometa: " + cometBullet.ammo, 600, 40);
 					break;
 				case "Flame":
-					ctx.fillText("Munição de chamas: " + flameBullet.ammo, 600, 30);
+					ctx.fillText("Munição de chamas: " + flameBullet.ammo, 600, 40);
 					break;
 				default:
-					ctx.fillText("Munição comum: ∞", 600, 30);				
+					ctx.fillText("Munição comum: ∞", 600, 40);				
 			}			
 			ctx.shadowBlur = 0;
 			player.draw();
@@ -235,8 +242,18 @@ $(document).ready(function(){
 			if(player.hp <= 0) {
 				alert("Você perdeu! Pontuação: " + player.score);
 				player = new Player();
+				sharpBullet = new SharpBullet();
+				cometBullet = new CometBullet();
+				flameBullet = new FlameBullet();				
 				enemies = [];
 				bullets = [];
+				supportItens = [];
+				ammoItens = [];
+				enemiesCounter = 0;
+				spawnSpeed = 700;
+				enemyDamageMod = 0;
+				enemySpeedMod = 0;
+				healingItemMod = 0;
 			}
 		}
 	}
@@ -277,7 +294,7 @@ $(document).ready(function(){
 		this.x = 10;
 		this.y = canvas.height() / 2 - this.height / 2;		
 		this.moveUp = this.moveDown = this.moveLeft = this.moveRight = false;
-		this.speed = 9;
+		this.speed = 11;
 		this.img = images.imgPlayer;
 		this.shoot = false;
 		this.isShooting = false;
@@ -365,8 +382,6 @@ $(document).ready(function(){
 			}
 		}		
 	}
-
-	
 
 	function SimpleBullet() {
 		this.height = 30;
@@ -488,7 +503,8 @@ $(document).ready(function(){
 							explosions.push(new Explosion(currentEnemy.x, currentEnemy.y));
 							explosionSound.get(0).play();
 							explosion.removeExplosions();
-							item.spawnItens();																	
+							item.spawnItens();
+							enemiesCounter++;																
 						}
 					}
 				}
@@ -501,9 +517,9 @@ $(document).ready(function(){
 		this.width = 100;
 		this.x = canvas.width() - 10		
 		this.y = Math.floor((Math.random() * 500));
-		this.speed = 6;
+		this.speed = 6 + enemySpeedMod;
 		this.hp = 2;
-		this.damage = 10;
+		this.damage = 10 + enemyDamageMod;
 		this.score = 10;
 		this.img = images.imgSimpleEnemy;
 
@@ -521,9 +537,9 @@ $(document).ready(function(){
 		this.width = 100;
 		this.x = canvas.width() - 10		
 		this.y = Math.floor((Math.random() * 500));
-		this.speed = 9;
+		this.speed = 9 + enemySpeedMod;
 		this.hp = 1;
-		this.damage = 20;
+		this.damage = 20 + enemyDamageMod;
 		this.score = 20;
 		this.img = images.imgFastEnemy;
 
@@ -541,9 +557,9 @@ $(document).ready(function(){
 		this.width = 100;
 		this.x = canvas.width() - 10		
 		this.y = Math.floor((Math.random() * 500));
-		this.speed = 6;
+		this.speed = 5 + enemySpeedMod;
 		this.hp = 5;
-		this.damage = 30;
+		this.damage = 30 + enemyDamageMod;
 		this.score = 50;
 		this.img = images.imgTankEnemy;
 
@@ -562,9 +578,9 @@ $(document).ready(function(){
 		this.x = canvas.width() - 10		
 		this.y = Math.floor((Math.random() * 500));
 		this.directionY = Math.floor((Math.random() * 2));
-		this.speed = 4;
+		this.speed = 4 + enemySpeedMod;
 		this.hp = 2;
-		this.damage = 20;
+		this.damage = 20 + enemyDamageMod;
 		this.score = 40;
 		this.img = images.imgDiagEnemy;
 
@@ -604,21 +620,39 @@ $(document).ready(function(){
 			}
 		}
 
-		this.spawnEnemies = function() {
-			setInterval(function(){
+		this.spawnEnemies = function() {			
+			setTimeout(function loop(){
 				if(intro.isOn == false && pause.isPaused == false) {
-					var random = Math.floor((Math.random() * 17));
+					var random = Math.floor((Math.random() * 16));
 					if(random >= 0 && random <= 7) {
 						enemies.push(new SimpleEnemy);
 					} else if(random >= 7 && random <= 10) {
 						enemies.push(new FastEnemy());
-					} else if(random >= 11 && random <= 13) {
+					} else if(random >= 11 && random <= 12) {
 						enemies.push(new TankEnemy());
-					} else if(random >= 14 && random <= 16) {
+					} else if(random >= 14 && random <= 15) {
 						enemies.push(new DiagEnemy());
-					}
+					}				
 				}
-			}, 700)
+				setTimeout(loop, spawnSpeed);
+			}, spawnSpeed)
+		}
+
+		this.enemyMod = function() {
+			if(enemiesCounter % 5 == 0 && enemiesCounter != 0 && enemySpeedMod <= 5) {
+				enemySpeedMod += 0.1;
+				healingItemMod += 2;
+			}
+			if(enemiesCounter % 5 == 0 && enemiesCounter != 0 && enemyDamageMod <= 100) {
+				enemyDamageMod += 2;
+			}
+			if(enemiesCounter % 5 == 0 && spawnSpeed > 250 && enemiesCounter != 0) {
+				spawnSpeed -= 10;				
+				if(item.spawnMod > 25) {
+					item.spawnMod--;
+				}
+				enemiesCounter++;
+			}				
 		}
 	}
 
@@ -627,7 +661,7 @@ $(document).ready(function(){
 		this.width = 50;
 		this.x = Math.floor((Math.random() * 800) + 30);
 		this.y = Math.floor((Math.random() * 550));
-		this.heal = 10;
+		this.heal = 10 + healingItemMod;
 		this.type = "Support";
 		this.power = "Heal";
 		this.img = images.imgHealingItem;
@@ -683,6 +717,7 @@ $(document).ready(function(){
 	}		 
 
 	function GlobalItens() {
+		this.spawnMod = 50;
 		this.drawItens = function() {
 			for(var i = 0; i < ammoItens.length; i++) {
 				var currentAmmoItem = ammoItens[i];
@@ -696,7 +731,7 @@ $(document).ready(function(){
 		}
 
 		this.spawnItens = function() {
-			var random = Math.floor((Math.random() * 50));
+			var random = Math.floor((Math.random() * this.spawnMod));
 			if(random >= 0 && random <= 10) {
 				supportItens.push(new HealingItem());
 			} else if(random >= 11 && random <= 14 && player.bulletType == "Simple") {
