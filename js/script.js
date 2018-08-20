@@ -23,6 +23,7 @@ $(document).ready(function(){
 	enemiesCounter = 0;
 
 	var themeSound = $("#themeSound");
+	var explosionSound = $("#explosionSound");
 
 	function LoadImages() {
 		this.imgIntroBackground = new Image();
@@ -416,7 +417,7 @@ $(document).ready(function(){
 		this.y = player.y + player.height / 2 - this.height / 2;
 		this.speed = 18;			
 		this.img = images.imgCometBullet;
-		this.sound = $("#sharpBulletSound");
+		this.sound = $("#cometBulletSound");
 		this.damage = 5;
 		this.pass = true;
 		this.ammo = 10;
@@ -437,7 +438,7 @@ $(document).ready(function(){
 		this.y = player.y + player.height / 2 - this.height / 2;
 		this.speed = 8;			
 		this.img = images.imgFlameBullet;
-		this.sound = $("#sharpBulletSound");
+		this.sound = $("#flameBulletSound");
 		this.damage = 10;
 		this.pass = true;
 		this.ammo = 5;
@@ -485,6 +486,7 @@ $(document).ready(function(){
 							enemies.splice(enemies.indexOf(currentEnemy), 1);							
 							player.score += currentEnemy.score;	
 							explosions.push(new Explosion(currentEnemy.x, currentEnemy.y));
+							explosionSound.get(0).play();
 							explosion.removeExplosions();
 							item.spawnItens();																	
 						}
@@ -699,7 +701,7 @@ $(document).ready(function(){
 				supportItens.push(new HealingItem());
 			} else if(random >= 11 && random <= 14 && player.bulletType == "Simple") {
 				ammoItens.push(new SharpItem());
-			} else if(random >= 15 && random <= 17 & player.bulletType == "Simple") {
+			} else if(random >= 15 && random <= 17 && player.bulletType == "Simple") {
 				ammoItens.push(new CometItem());
 			} else if(random == 18 && player.bulletType == "Simple") {
 				ammoItens.push(new FlameItem());
