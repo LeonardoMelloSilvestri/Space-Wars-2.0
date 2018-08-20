@@ -25,6 +25,8 @@ $(document).ready(function(){
 	var themeSound = $("#themeSound");
 
 	function LoadImages() {
+		this.imgIntroBackground = new Image();
+		this.imgIntroBackground.src = "./img/introBackground.jpg";		
 		this.imgPlayer = new Image();
 		this.imgPlayer.src = "./img/player.png";
 		this.imgSimpleEnemy = new Image();
@@ -171,22 +173,44 @@ $(document).ready(function(){
 
 	function Intro() {
 		this.height = 500;
-		this.width = 500;
+		this.width = 980;
 		this.x = canvas.width() / 2 - this.width / 2;
-		this.y = canvas.height() / 2 - this.height / 2;
-		this.bgColor = "white";
+		this.y = canvas.height() / 2 - this.height / 2;		
 		this.color = "black";		
 		this.isOn = true;
+		this.img = images.imgIntroBackground;
 
 		this.draw = function() {
-			if(this.isOn == true) {
-				ctx.fillStyle = this.bgColor;
-				ctx.fillRect(this.x, this.y, this.width, this.height);
+			if(this.isOn == true) {				
+				ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
 				ctx.fillStyle = this.color;
-				ctx.font = "30px Cursive";
+				ctx.font = "50px Cursive";
 				ctx.textAlign = "center";
-				ctx.fillText("Seja bem vindo!", canvas.width() / 2, 100);
-				ctx.fillText("Aperte ESC ou ENTER para iniciar", canvas.width() / 2, 150);
+				ctx.fillStyle = "Black";
+				ctx.shadowColor = "Red";
+				ctx.shadowBlur = 5;					
+				ctx.fillText("Space Wars 2.0", canvas.width() / 2, 100);				
+				ctx.shadowBlur = 0;
+				ctx.font = "30px Cursive";
+				ctx.fillText("Evite com que os inimigos alcancem a margem esquerda, pontos de", canvas.width() / 2, 150);
+				ctx.fillText("vida serão perdidos caso isso aconteça, chegando a 0 VOCÊ PERDE!", canvas.width() / 2, 200);
+				ctx.font = "40px Cursive";
+				ctx.fillStyle = "Red";
+				ctx.shadowColor = "Black";
+				ctx.shadowBlur = 4;					
+				ctx.fillText("Comandos", canvas.width() / 2, 250);
+				ctx.shadowBlur = 0;
+				ctx.fillStyle = "Black";
+				ctx.font = "30px Cursive";
+				ctx.fillText("Movimente-se através das setas", canvas.width() / 2, 300);
+				ctx.fillText("Atire com o Z", canvas.width() / 2, 350);
+				ctx.fillText("Use o ENTER para Pausar o jogo", canvas.width() / 2, 400);
+				ctx.font = "40px Cursive";
+				ctx.fillStyle = "Red";
+				ctx.shadowColor = "Black";
+				ctx.shadowBlur = 4;						
+				ctx.fillText("Aperte ESC ou ENTER para iniciar", canvas.width() / 2, 500);
+				ctx.shadowBlur = 0;
 			}
 		}
 	}
@@ -372,7 +396,7 @@ $(document).ready(function(){
 		this.speed = 15;			
 		this.img = images.imgSharpBullet;
 		this.sound = $("#sharpBulletSound");
-		this.damage = 1;
+		this.damage = 2;
 		this.pass = false;
 		this.ammo = 20;
 
@@ -408,7 +432,7 @@ $(document).ready(function(){
 
 	function FlameBullet() {
 		this.height = 250;
-		this.width = 200;
+		this.width = 250;
 		this.x = player.x + player.width - 50;
 		this.y = player.y + player.height / 2 - this.height / 2;
 		this.speed = 8;			
