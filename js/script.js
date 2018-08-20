@@ -639,14 +639,16 @@ $(document).ready(function(){
 		}
 
 		this.enemyMod = function() {
+			if(enemiesCounter % 5 == 0 && enemiesCounter && healingItemMod <= 60) {
+				healingItemMod += 1;
+			}
 			if(enemiesCounter % 5 == 0 && enemiesCounter != 0 && enemySpeedMod <= 5) {
 				enemySpeedMod += 0.1;
-				healingItemMod += 2;
 			}
 			if(enemiesCounter % 5 == 0 && enemiesCounter != 0 && enemyDamageMod <= 100) {
 				enemyDamageMod += 2;
 			}
-			if(enemiesCounter % 5 == 0 && spawnSpeed > 250 && enemiesCounter != 0) {
+			if(enemiesCounter % 5 == 0 && enemiesCounter != 0 && spawnSpeed > 250) {
 				spawnSpeed -= 10;				
 				if(item.spawnMod > 25) {
 					item.spawnMod--;
